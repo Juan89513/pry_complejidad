@@ -1,148 +1,38 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package pry_cyopt;
-
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
 
-/**
- *
- * @author juan
- */
+
 public class Demo {
 
-	public Demo() {
-	}
+  public static void main(String[] args) {
+    try {
+      // Create a problem with 4 variables and 0 constraints
+      LpSolve solver = LpSolve.makeLp(0, 4);
 
-	public int execute() throws LpSolveException {
-          LpSolve lp;
-          int Ncol, j, ret = 0;
+      // add constraints
+      solver.strAddConstraint("3 2 2 1", LpSolve.LE, 4);
+      solver.strAddConstraint("0 4 3 1", LpSolve.GE, 3);
 
-          /* We will build the model row by row
-             So we start with creating a model with 0 rows and 2 columns */
-          Ncol = 2; /* there are two variables in the model */
+      // set objective function
+      solver.strSetObjFn("2 3 -2 3");
 
-          /* create space large enough for one row */
-          int[] colno = new int[Ncol];
-          double[] row = new double[Ncol];
+      // solve the problem
+      solver.solve();
 
-          lp = LpSolve.makeLp(0, Ncol);
-          if(lp.getLp() == 0)
-            ret = 1; /* couldn't construct a new model... */
+      // print solution
+      System.out.println("Value of objective function: " + solver.getObjective());
+      double[] var = solver.getPtrVariables();
+      for (int i = 0; i < var.length; i++) {
+        System.out.println("Value of var[" + i + "] = " + var[i]);
+      }
 
-          if(ret == 0) {
-            /* let us name our variables. Not required, but can be useful for debugging */
-            lp.setColName(1, "x");
-            lp.setColName(2, "y");
+      // delete the problem and free memory
+      solver.deleteLp();
+    }
+    catch (LpSolveException e) {
+       e.printStackTrace();
+    }
+  }
 
-            lp.setAddRowmode(true);  /* makes building the model faster if it is done rows by row */
-
-            /* construct first row (120 x + 210 y <= 15000) */
-            j = 0;
-
-            colno[j] = 1; /* first column */
-            row[j++] = 120;
-
-            colno[j] = 2; /* second column */
-            row[j++] = 210;
-
-            /* add the row to lpsolve */
-            lp.addConstraintex(j, row, colno, LpSolve.LE, 15000);
-          }
-
-          if(ret == 0) {
-            /* construct second row (110 x + 30 y <= 4000) */
-            j = 0;
-
-            colno[j] = 1; /* first column */
-            row[j++] = 110;
-
-            colno[j] = 2; /* second column */
-            row[j++] = 30;
-
-            /* add the row to lpsolve */
-            lp.addConstraintex(j, row, colno, LpSolve.LE, 4000);
-          }
-
-          if(ret == 0) {
-            /* construct third row (x + y <= 75) */
-            j = 0;
-
-            colno[j] = 1; /* first column */
-            row[j++] = 1;
-
-            colno[j] = 2; /* second column */
-            row[j++] = 1;
-
-            /* add the row to lpsolve */
-            lp.addConstraintex(j, row, colno, LpSolve.LE, 75);
-          }
-
-          if(ret == 0) {
-            lp.setAddRowmode(false); /* rowmode should be turned off again when done building the model */
-
-            /* set the objective function (143 x + 60 y) */
-            j = 0;
-
-            colno[j] = 1; /* first column */
-            row[j++] = 143;
-
-            colno[j] = 2; /* second column */
-            row[j++] = 60;
-
-            /* set the objective in lpsolve */
-            lp.setObjFnex(j, row, colno);
-          }
-
-          if(ret == 0) {
-            /* set the object direction to maximize */
-            lp.setMaxim();
-
-            /* just out of curioucity, now generate the model in lp format in file model.lp */
-            lp.writeLp("model.lp");
-
-            /* I only want to see important messages on screen while solving */
-            lp.setVerbose(LpSolve.IMPORTANT);
-
-            /* Now let lpsolve calculate a solution */
-            ret = lp.solve();
-            if(ret == LpSolve.OPTIMAL)
-              ret = 0;
-            else
-              ret = 5;
-          }
-
-          if(ret == 0) {
-            /* a solution is calculated, now lets get some results */
-
-            /* objective value */
-            System.out.println("Objective value: " + lp.getObjective());
-
-            /* variable values */
-            lp.getVariables(row);
-            for(j = 0; j < Ncol; j++)
-              System.out.println(lp.getColName(j + 1) + ": " + row[j]);
-
-            /* we are done now */
-          }
-
-          /* clean up such that all used memory by lpsolve is freed */
-          if(lp.getLp() != 0)
-            lp.deleteLp();
-
-          return(ret);
-        }
-
-	public static void main(String[] args) {
-		try {
-			new Demo().execute();
-		}
-		catch (LpSolveException e) {
-			e.printStackTrace();
-		}
-	}
 }
