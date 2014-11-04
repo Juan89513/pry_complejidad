@@ -17,10 +17,7 @@ import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import lpsolve.LpSolve;
 
-/**
- *
- * @author oscaraca
- */
+
 public class ModeloTSP {
 
     public LpSolve solver;
@@ -39,13 +36,39 @@ public class ModeloTSP {
             sp.asignarValores(rutaArchivo);
             int noSitios = sp.getNoSitios();
             int noVariablesBinarias = sp.cantitadVariablesBinarias();
-            ArrayList<Sitio> listaSopas = sp.getListaSitio();
+            ArrayList<Sitio> listaSitios = sp.getListaSitio();
             double[][] distanciasEntreSitios = sp.getDistanciasSitios();
-            JOptionPane.showMessageDialog(null,noVariablesBinarias);
+            
             //por cada nodo hay 4 variables (Tiempo de servicio, Tiempo de llegada,hora minima de llegada, hora maxima de llegada)
             //las variables binarias deben ser la cantidad de caminos que me pasen
             int totalVariables = (4 * noSitios) + noVariablesBinarias;
             solver = LpSolve.makeLp(0, totalVariables);
+            
+            // RESTRICCIONES
+
+            int posVariableBinaria = noSitios+1;
+            int indiceTotal = 0;
+            for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES DE ORDEN
+                for (int j = 0; j < listaSitios.size(); j++) {
+
+                    if (i!=j) {
+                        double[] row1 = new double[totalVariables];
+                        row1[i+1] = 1;
+                        row1[j+1] = -1;
+                        row1[posVariableBinaria] = 1 ;
+                        double terminoIndependiente1 = listaSitios.get(i).getTiempoEnSitio();
+                        
+                        solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
+                        matriz.add(row1);
+                        terminosIndependientes.add(terminoIndependiente1);
+                        posVariableBinaria++;
+                    }
+                }
+            }
+            solver.writeLp("test.lp");
+            /* IMPRIMIR EN FORMATO .LP
+            solver.writeLp("model.lp");*/
+
     }catch(Exception e){
     }
     
