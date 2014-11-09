@@ -1,15 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package pry_cyopt;
 
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
 
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -44,31 +34,56 @@ public class ModeloTSP {
             int totalVariables = (4 * noSitios) + noVariablesBinarias;
             solver = LpSolve.makeLp(0, totalVariables);
             
-            //FUNCION OBJETIVO
+            //FUNCION OBJETIVO (NO ESTA CLARA AÚN)
             String respuesta="";
             int acum_variables_puestas=0;
             for (int i = 0; i < listaSitios.size(); i++) { 
-                if(i==0){
-                    respuesta+="1";
-                }else{
-                    respuesta+=" 1";
-                }
+                
                 acum_variables_puestas++;
             }
-            completarConCeros(acum_variables_puestas,totalVariables);
+            respuesta=completarConCeros(acum_variables_puestas,totalVariables,"0");
             System.out.println("hola"+respuesta);
-            solver.strSetObjFn("1 1 0 0 0 0 0 0 0 0 11");
-                              //1 2 3 4 5 6 7 8 9 10 11
-            // RESTRICCIONES DE LLEGADA EN TIEMPO ESTABLECIDO 
+                               
+            solver.strSetObjFn(respuesta);
+            int MGrande=5000;
+            int posVariableBinaria = noSitios+1;
+            
+            
+            for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES DE ORDEN(1)
+                for (int j = 0; j < listaSitios.size(); j++) {
+
+                    if (i!=j) {
+                        double[] row1 = new double[totalVariables];
+                        row1[i+1] = 1;
+                        row1[j+1] = -1;
+                        row1[posVariableBinaria] = 1 * MGrande;
+                        double terminoIndependiente1 = MGrande - listaSitios.get(i).getTiempoEnSitio() - distanciasEntreSitios[i][j];
+                        
+                        solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
+                        matriz.add(row1);
+                        System.out.println("termino independiente"+terminoIndependiente1);
+                        for(int ix=0;ix<row1.length;ix++){
+                        System.out.println("row"+ix+row1[ix]);
+                        
+                        }
+                        System.out.println("tipo constraint"+LpSolve.LE);
+                        System.out.println("////////////////////////////////////////");
+                        terminosIndependientes.add(terminoIndependiente1);
+                        posVariableBinaria++;
+                    }
+                }
+            }
+            // RESTRICCIONES DE LLEGADA EN TIEMPO ESTABLECIDO (2)
             //Debe llegar antes del tiempo final
+            
             for (int i = 0; i < listaSitios.size(); i++) { 
-                double[] row1 = new double[totalVariables];
-                row1[i+1] = 1;
+                double[] row = new double[totalVariables];
+                row[i+1] = 1;
                 double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_final();
-                solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
+                solver.addConstraint(row, LpSolve.LE, terminoIndependiente1);
             
             }
-            //Debe llegar antes del tiempo inicial
+            // 2.1Debe llegar antes del tiempo inicial
             for (int i = 0; i < listaSitios.size(); i++) { 
                 double[] row1 = new double[totalVariables];
                 row1[i+1] = 1;
@@ -77,12 +92,29 @@ public class ModeloTSP {
             
             }
             
+            
+            for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES TIEMPO LLEGADA SITIOS MAYOR O IGUAL A CERO
+                double row[] = new double[totalVariables];
+                row[i + 1] = 1;
+                double terminoIndependiente = 0;
+                solver.addConstraint(row, LpSolve.GE, terminoIndependiente);
+
+                matriz.add(row);
+                terminosIndependientes.add(terminoIndependiente);
+                //indiceTotal++;
+            }
+            
+            for (int i = noSitios + 1; i < (noSitios + noVariablesBinarias + 1); i++) { //VARIABLES BINARIAS
+                solver.setBinary(i, true);
+                 
+                //System.out.println("seteando variable binaria: " +i);
+            }
             solver.writeLp("test.lp");
             
             System.exit(1);
-            int posVariableBinaria = noSitios+1;
+             
             int indiceTotal = 0;
-            for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES DE ORDEN
+            for (int i = 0; i < listaSitios.size(); i++) { 
                 for (int j = 0; j < listaSitios.size(); j++) {
 
                     if (i!=j) {
@@ -443,6 +475,21 @@ public class ModeloTSP {
                 */
         return "";
     }
-    void completarConCeros(int numeroVariablesPuestas,int numeroTotalVariables){
+    public static void main(String[] args) {
+        ModeloTSP ms = new ModeloTSP();
+        
+        System.out.println(ms.resolverModelo("prueba1.txt"));
+    }
+    String completarConCeros(int numeroVariablesPuestas,int numeroTotalVariables,String rhs){
+        String result="";
+        for(int i=0;i<numeroTotalVariables;i++){
+            if(i<numeroVariablesPuestas){
+                result+="1 ";
+            }else{
+                result+="0 ";
+            }
+        }
+        result+=rhs;
+        return result;
     }
 }

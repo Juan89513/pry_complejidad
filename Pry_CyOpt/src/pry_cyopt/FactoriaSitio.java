@@ -25,12 +25,6 @@ public class FactoriaSitio {
     public double[][] getDistanciasSitios() {
         return distanciasSitios;    }
     
-    public static void main(String[] args) {
-        FactoriaSitio sf = new FactoriaSitio();
-        sf.asignarValores("prueba1.txt");
-        sf.imprimirInformacionSitios();
-    }
-    
     public void imprimirInformacionSitios() {
         System.out.println("Cantidad Sitios: " + noSitios + "\nSitios\tT.Preparacion\tT.Entrega");
         for (int i=0; i<listaSitios.size(); i++) {
