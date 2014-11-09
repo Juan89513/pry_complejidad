@@ -44,8 +44,42 @@ public class ModeloTSP {
             int totalVariables = (4 * noSitios) + noVariablesBinarias;
             solver = LpSolve.makeLp(0, totalVariables);
             
-            // RESTRICCIONES
-
+            //FUNCION OBJETIVO
+            String respuesta="";
+            int acum_variables_puestas=0;
+            for (int i = 0; i < listaSitios.size(); i++) { 
+                if(i==0){
+                    respuesta+="1";
+                }else{
+                    respuesta+=" 1";
+                }
+                acum_variables_puestas++;
+            }
+            completarConCeros(acum_variables_puestas,totalVariables);
+            System.out.println("hola"+respuesta);
+            solver.strSetObjFn("1 1 0 0 0 0 0 0 0 0 11");
+                              //1 2 3 4 5 6 7 8 9 10 11
+            // RESTRICCIONES DE LLEGADA EN TIEMPO ESTABLECIDO 
+            //Debe llegar antes del tiempo final
+            for (int i = 0; i < listaSitios.size(); i++) { 
+                double[] row1 = new double[totalVariables];
+                row1[i+1] = 1;
+                double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_final();
+                solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
+            
+            }
+            //Debe llegar antes del tiempo inicial
+            for (int i = 0; i < listaSitios.size(); i++) { 
+                double[] row1 = new double[totalVariables];
+                row1[i+1] = 1;
+                double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_inicial();
+                solver.addConstraint(row1, LpSolve.GE, terminoIndependiente1);
+            
+            }
+            
+            solver.writeLp("test.lp");
+            
+            System.exit(1);
             int posVariableBinaria = noSitios+1;
             int indiceTotal = 0;
             for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES DE ORDEN
@@ -56,7 +90,7 @@ public class ModeloTSP {
                         row1[i+1] = 1;
                         row1[j+1] = -1;
                         row1[posVariableBinaria] = 1 ;
-                        double terminoIndependiente1 = listaSitios.get(i).getTiempoEnSitio();
+                        double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_final();
                         
                         solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
                         matriz.add(row1);
@@ -408,5 +442,7 @@ public class ModeloTSP {
         return M;
                 */
         return "";
+    }
+    void completarConCeros(int numeroVariablesPuestas,int numeroTotalVariables){
     }
 }

@@ -95,7 +95,7 @@ public class FactoriaSitio {
             
             Sitio sitio = new Sitio();
             sitio.setTiempoEnSitio(tiempoEnSitio);
-            sitio.setDisponibilidad_final(tiempoInicial);
+            sitio.setDisponibilidad_inicial(tiempoInicial);
             sitio.setDisponibilidad_final(tiempoFinal);
             
             listaSitios.add(sitio);

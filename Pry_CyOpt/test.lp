@@ -1,6 +1,8 @@
 /* Objective function */
-min: ;
+min: +C1 +C2;
 
 /* Constraints */
-+C1 -C2 +C3 <= 2.5;
--C1 +C2 +C4 <= 3.1;
+R1: +C1 <= 5;
+R2: +C2 <= 12;
+R3: +C1 >= 2;
+R4: +C2 >= 10;
