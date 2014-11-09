@@ -2,10 +2,9 @@ package pry_cyopt;
 
 
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 import lpsolve.LpSolve;
+import lpsolve.LpSolveException;
 
 
 public class ModeloTSP {
@@ -31,6 +30,7 @@ public class ModeloTSP {
             
             //por cada nodo hay 4 variables (Tiempo de servicio, Tiempo de llegada,hora minima de llegada, hora maxima de llegada)
             //las variables binarias deben ser la cantidad de caminos que me pasen
+           // JOptionPane.showMessageDialog(null,noSitios);
             int totalVariables = (4 * noSitios) + noVariablesBinarias;
             solver = LpSolve.makeLp(0, totalVariables);
             
@@ -42,10 +42,7 @@ public class ModeloTSP {
                 acum_variables_puestas++;
             }
             respuesta=completarConCeros(acum_variables_puestas,totalVariables,"0");
-          //  System.out.println("hola"+respuesta);
-                               
-            //solver.strSetObjFn(respuesta);
-            //int MGrande=5000;
+            solver.strSetObjFn(respuesta);
             double MGrande=calcularMGrande() ;
             int posVariableBinaria = noSitios+1;
             
@@ -59,7 +56,6 @@ public class ModeloTSP {
                         row1[j+1] = -1;
                         row1[posVariableBinaria] = 1 * MGrande;
                         double terminoIndependiente1 = MGrande - listaSitios.get(i).getTiempoEnSitio() - distanciasEntreSitios[i][j];
-                        
                         solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
                         matriz.add(row1);
                        // System.out.println("termino independiente"+terminoIndependiente1);
@@ -105,33 +101,37 @@ public class ModeloTSP {
                 //indiceTotal++;
             }
             
-            for (int i = noSitios + 1; i < (noSitios + noVariablesBinarias + 1); i++) { //VARIABLES BINARIAS
+            for (int i = noSitios + 1; i < (noSitios + noVariablesBinarias); i++) { //VARIABLES BINARIAS
                 solver.setBinary(i, true);
-                 
                 //System.out.println("seteando variable binaria: " +i);
             }
-             //imprimirMatrizCoeficientes(matriz);
+            int limite=0;
+            for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES DE CIRCUITO
+                int sitioSiguiente=limite+1;
+                double terminoIndependiente = 1;
+                    //las primeras sitio variables en 1; el resto en 0
+                    int tmp=i+1;
+                    int inicio=i+listaSitios.size();
+                    limite=tmp*listaSitios.size();
+                    //Desde i+1 hasta limite
+                    System.out.println("variable->"+sitioSiguiente+"-"+"limite->"+limite);
+                    double row[] =devolverRow(3,sitioSiguiente, limite, noVariablesBinarias);
+                    for(int j=0;j<row.length;j++){
+                        System.out.println("j->"+j+"value->"+row[j]);
+                    }
+                solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
 
-            double[] rowObj = new double[totalVariables];
-            rowObj[totalVariables - 1] = 1;
-            //solver.addConstraint(rowObj, LpSolve.GE, 0);
-            matriz.add(rowObj);
-
-            System.out.println("OBJ"+rowObj);
-            for(double i:rowObj){
-            System.out.println("i"+i);}
+                matriz.add(row);
+                terminosIndependientes.add(terminoIndependiente);
+                //indiceTotal++;
+            }
             solver.writeLp("test.lp");
             
-            solver.setObjFn(rowObj);
+//            solver.setObjFn(rowObj);
             // print solution
             objetivo = solver.getObjective();
             System.out.println("Value of objective function: " + objetivo);
 
-  /*          valoresOptimos = solver.getPtrVariables();
-            for (int i = 0; i < valoresOptimos.length; i++) {
-                System.out.println("Value of var[" + i + "] = " + valoresOptimos[i]);
-            }
-*/
             // delete the problem and free memory
             solver.deleteLp();
 
@@ -157,13 +157,17 @@ public class ModeloTSP {
             ///IMPRIMIR EN FORMATO LP
             solver.writeLp("test.lp");
             
-    }catch(Exception e){
+    }catch(LpSolveException e){
     }
         return "";
   }
     public static void main(String[] args) {
         ModeloTSP ms = new ModeloTSP();
-        
+      /*  double[]resultRow=ms.devolverRow(0,1, 3, 9);
+        for(int i=0;i<resultRow.length;i++){
+            System.out.println(resultRow[i]);
+        }
+       System.exit(1);*/
         System.out.println(ms.resolverModelo("prueba2.txt"));
     }
     String completarConCeros(int numeroVariablesPuestas,int numeroTotalVariables,String rhs){
@@ -178,7 +182,20 @@ public class ModeloTSP {
         result+=rhs;
         return result;
     }
-    
+    public double[] devolverRow(int nro_sitios,int sitioInicial,int sitioFinal,int totalVariablesBooleanas){
+        double[]row=new double[totalVariablesBooleanas+nro_sitios+1];
+        for(int i=0;i<nro_sitios;i++){
+            row[i+1]=0;
+        }
+        for(int i=0;i<totalVariablesBooleanas;i++){
+            if(i>=sitioInicial-1 &&i<sitioFinal){
+                row[i+nro_sitios+1]=1;
+            }else{
+                row[i+nro_sitios+1]=0;
+            }
+        }
+        return row;
+    }
      private double calcularMGrande() {
         double M=0;
         

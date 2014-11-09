@@ -129,7 +129,8 @@ public class FactoriaSitio {
     }
     
     public int cantitadVariablesBinarias() {
-        return noSitios*(noSitios-1);
+        //return noSitios*(noSitios-1);
+        return noSitios*noSitios;
     }
 
     
