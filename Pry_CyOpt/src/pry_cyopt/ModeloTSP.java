@@ -24,6 +24,8 @@ public class ModeloTSP {
             int noVariablesBinarias = sp.cantitadVariablesBinarias();
             ArrayList<Sitio> listaSitios = sp.getListaSitio();
             double[][] distanciasEntreSitios = sp.getDistanciasSitios();
+            //matriz auxiliar de booleanos diciendo si pasa o no por un sitio
+            boolean [][] pasaPorUnSitio = new boolean[distanciasEntreSitios.length][distanciasEntreSitios.length];
             
             //por cada nodo hay 4 variables (Tiempo de servicio, Tiempo de llegada,hora minima de llegada, hora maxima de llegada)
             //las variables binarias deben ser la cantidad de caminos que me pasen
@@ -74,12 +76,12 @@ public class ModeloTSP {
                 double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_final();
                 solver.addConstraint(row, LpSolve.LE, terminoIndependiente1);
             }
-            // 2.1Debe llegar antes del tiempo inicial
+            // 2.1Debe llegar antes del tiempo inicial, lo comenté porque daña el modelo
             for (int i = 0; i < listaSitios.size(); i++) { 
                 double[] row1 = new double[totalVariables];
                 row1[i+1] = 1;
                 double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_inicial();
-                solver.addConstraint(row1, LpSolve.GE, terminoIndependiente1);
+                //solver.addConstraint(row1, LpSolve.GE, terminoIndependiente1);
             }
             
             for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES TIEMPO LLEGADA SITIOS MAYOR O IGUAL A CERO
@@ -95,42 +97,53 @@ public class ModeloTSP {
             
             for (int i = noSitios + 1; i < (noSitios + noVariablesBinarias); i++) { //VARIABLES BINARIAS
                 solver.setBinary(i, true);
-                //System.out.println("seteando variable binaria: " +i);
             }
             
-            int limite=0;
-            
-            for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES DE CIRCUITO
-                int sitioSiguiente=limite+1;
+            int acum=0;
+            for(int i=0;i<pasaPorUnSitio.length;i++){       //RESTRICCIONES DE CIRCUITO 1
                 double terminoIndependiente = 1;
-                //las primeras sitio variables en 1; el resto en 0
-                int tmp=i+1;
-                int inicio=i+listaSitios.size();
-                limite=tmp*listaSitios.size();
-                //Desde i+1 hasta limite
-                System.out.println("variable->"+sitioSiguiente+"-"+"limite->"+limite);
-                double row[] =devolverRow(3,sitioSiguiente, limite, noVariablesBinarias);
-                   
-                for(int j=0;j<row.length;j++){
-                        System.out.println("j->"+j+"value->"+row[j]);
+                boolean tiene_algo_para_agregar=false;
+                double row[] = new double[totalVariables];
+                for(int j=0;j<pasaPorUnSitio.length;j++){
+                    acum++;
+                    if(distanciasEntreSitios[i][j]>0){
+                         row[noSitios+acum] =1;
+                         tiene_algo_para_agregar=true;
+                    }
                 }
-                
-                solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
-
-                matriz.add(row);
-                terminosIndependientes.add(terminoIndependiente);
-                //indiceTotal++;
+                if(tiene_algo_para_agregar){
+                    solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
+                }
+             }
+             
+            
+            acum=0;
+            double rowObjetivo[]=new double[(pasaPorUnSitio.length*pasaPorUnSitio.length)+1+noSitios];
+            for(int i=0;i<pasaPorUnSitio.length;i++){  //CONSTRUCCION DE LA FUNCION OBJETIVO
+                for(int j=0;j<pasaPorUnSitio.length;j++){
+                    acum++;
+                    rowObjetivo[noSitios+acum] =distanciasEntreSitios[i][j];
+                }
             }
             
+            solver.setObjFn(rowObjetivo);
             solver.writeLp("test.lp");
-            //solver.setObjFn(rowObj);
+            
+            // solve the problem
+           solver.solve();
+
             // print solution
             objetivo = solver.getObjective();
             System.out.println("Value of objective function: " + objetivo);
 
-            // delete the problem and free memory
-            solver.deleteLp();
-
+            // delete the problem and free 
+            double[] var = solver.getPtrVariables();
+      
+             for (int i = 0; i < var.length; i++) {
+              //  System.out.println("Value of var[" + i + "] = " + var[i]);
+            }
+             solver.deleteLp();
+    
             System.exit(1);
              
             int indiceTotal = 0;
@@ -190,6 +203,18 @@ public class ModeloTSP {
         
         return row;
     }
+    
+    public int[] devolverRowObj(int nro_sitios,int totalVariablesBooleanas){
+        int[]result=new int[nro_sitios+totalVariablesBooleanas+1];
+        for(int i=0;i<nro_sitios;i++){
+            result[i+1]=0;
+       }
+        for(int i=0;i<nro_sitios;i++){
+            result[i+1]=0;
+        }
+        
+     return null;   
+    }
      private double calcularMGrande() {
         double M=0;
         
@@ -207,7 +232,7 @@ public class ModeloTSP {
                 M+=matrizAlistamiento[i][j];
             }
         }
-        System.out.println("M->"+M);
+       // System.out.println("M->"+M);
         return M;
     }
     
