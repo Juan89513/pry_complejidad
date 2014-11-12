@@ -1,6 +1,7 @@
 package pry_cyopt;
 
 import java.util.ArrayList;
+import javax.swing.JOptionPane;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
 
@@ -31,8 +32,9 @@ public class ModeloTSP {
             //las variables binarias deben ser la cantidad de caminos que me pasen
            // JOptionPane.showMessageDialog(null,noSitios);
             //int totalVariables = (4 * noSitios) + noVariablesBinarias*2;
-            int totalVariables = (4 * noSitios) + noVariablesBinarias;
-            
+            int totalVariables = (2 * noSitios) + noVariablesBinarias;
+            //JOptionPane.showMessageDialog(null,totalVariables);
+            //System.exit(1);
             int [][] auxResultados=new int[noSitios][noSitios];
             solver = LpSolve.makeLp(0, totalVariables);
             
@@ -149,16 +151,29 @@ public class ModeloTSP {
                 }
              }
             
+            for (int i=0;i<noSitios;i++){ //RESTRICCIONES DE TIEMPO DE ESPERA (5)
+                //
+                double row[] = new double[totalVariables+1];
+                double terminoIndependiente=listaSitios.get(i).getDisponibilidad_inicial();
+                row[i+1]=1; 
+                row[i+noSitios+noVariablesBinarias+1]=1; 
+                solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
+            }
+            
             
             acum=0;
-            double rowObjetivo[]=new double[(pasaPorUnSitio.length*pasaPorUnSitio.length)+1+noSitios];
-            for(int i=0;i<pasaPorUnSitio.length;i++){  // FUNCION OBJETIVO (5) ; FALTA MINIMIZAR TIEMPOS DE ESPERA, ESTA COMO TSP ESTANDAR
+            double rowObjetivo[]=new double[1+2*noSitios+noSitios*noSitios];
+            for(int i=0;i<pasaPorUnSitio.length;i++){  // FUNCION OBJETIVO (6) ; FALTA MINIMIZAR TIEMPOS DE ESPERA, ESTA COMO TSP ESTANDAR
                 for(int j=0;j<pasaPorUnSitio.length;j++){
                     acum++;
                     rowObjetivo[noSitios+acum] =distanciasEntreSitios[i][j];
-                }
+                 }
             }
             
+            for (int i=0;i<noSitios;i++){ //RESTRICCIONES DE TIEMPO DE ESPERA (5)
+                //
+                rowObjetivo[i+noSitios+noVariablesBinarias+1] =1;
+            }
             
             solver.setObjFn(rowObjetivo);
             solver.writeLp("test"+noSitios+".lp");

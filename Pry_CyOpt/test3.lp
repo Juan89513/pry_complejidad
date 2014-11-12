@@ -1,5 +1,5 @@
 /* Objective function */
-min: +5 C5 +7 C6 +5 C7 +13 C9 +7 C10 +13 C11;
+min: +5 C5 +7 C6 +5 C7 +13 C9 +7 C10 +13 C11 +C13 +C14 +C15;
 
 /* Constraints */
 +C1 -C2 +218.7 C5 <= 211.2;
@@ -20,6 +20,9 @@ R12: +C3 >= 0;
 +C4 +C7 +C10 = 1;
 +C5 +C8 +C11 = 1;
 +C6 +C9 +C12 = 1;
++C1 +C13 = 10;
++C2 +C14 = 20;
++C3 +C15 = 30;
 
 /* Variable bounds */
 C4 <= 1;
