@@ -30,10 +30,10 @@ public class ModeloTSP {
             //por cada nodo hay 4 variables (Tiempo de servicio, Tiempo de llegada,hora minima de llegada, hora maxima de llegada)
             //las variables binarias deben ser la cantidad de caminos que me pasen
            // JOptionPane.showMessageDialog(null,noSitios);
-            int totalVariables = (4 * noSitios) + noVariablesBinarias;
+            int totalVariables = (4 * noSitios) + noVariablesBinarias*2;
+            int [][] auxResultados=new int[noSitios][noSitios];
             solver = LpSolve.makeLp(0, totalVariables);
             
-            //FUNCION OBJETIVO (NO ESTA CLARA AÚN)
             String respuesta="";
             int acum_variables_puestas=0;
             
@@ -52,21 +52,23 @@ public class ModeloTSP {
                         double[] row1 = new double[totalVariables];
                         row1[i+1] = 1;
                         row1[j+1] = -1;
-                        row1[posVariableBinaria] = 1 * MGrande;
+                        row1[posVariableBinaria+noVariablesBinarias] = 1 * MGrande;
                         double terminoIndependiente1 = MGrande - listaSitios.get(i).getTiempoEnSitio() - distanciasEntreSitios[i][j];
-                        solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
-                        matriz.add(row1);
-                       // System.out.println("termino independiente"+terminoIndependiente1);
-                        for(int ix=0;ix<row1.length;ix++){
-                            //System.out.println("row"+ix+row1[ix]);
+                        /*for(int x=0;x<row1.length;x++){
+                        System.out.println(x+"->"+row1[x]);
                         }
-                        //System.out.println("tipo constraint"+LpSolve.LE);
-                        //System.out.println("////////////////////////////////////////");
+                        System.exit(1);*/
+                        auxResultados[i][j]=posVariableBinaria;
+            
+                        solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
+                            matriz.add(row1);
+                        //}
                         terminosIndependientes.add(terminoIndependiente1);
                         posVariableBinaria++;
                     }
                 }
             }
+                        
             
             // RESTRICCIONES DE LLEGADA EN TIEMPO ESTABLECIDO (2)
             //Debe llegar antes del tiempo final   
@@ -95,7 +97,7 @@ public class ModeloTSP {
                 //indiceTotal++;
             }
             
-            for (int i = noSitios + 1; i < (noSitios + noVariablesBinarias); i++) { //VARIABLES BINARIAS
+            for (int i = noSitios + 1; i < (noSitios + 2*noVariablesBinarias+1); i++) { //VARIABLES BINARIAS
                 solver.setBinary(i, true);
             }
             
@@ -115,7 +117,27 @@ public class ModeloTSP {
                     solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
                 }
              }
-             
+            
+            acum=0;
+            for(int i=0;i<noSitios;i++){       //RESTRICCIONES DE CIRCUITO 2; solo funciona para 3 sitios por ahora
+                double terminoIndependiente = 1;
+                 acum++;
+                boolean tiene_algo_para_agregar=false;
+                double row[] = new double[totalVariables];
+                for(int j=0;j<noSitios;j++){
+               
+                if(distanciasEntreSitios[i][j]>0){
+                    row[noSitios+acum] =1;
+                    row[noSitios+acum+noSitios] =1;
+                    row[noSitios+acum+noSitios*2] =1;
+                         
+                         tiene_algo_para_agregar=true;
+                    }
+                }
+                if(tiene_algo_para_agregar){
+                    solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
+                }
+             }
             
             acum=0;
             double rowObjetivo[]=new double[(pasaPorUnSitio.length*pasaPorUnSitio.length)+1+noSitios];
@@ -127,7 +149,7 @@ public class ModeloTSP {
             }
             
             solver.setObjFn(rowObjetivo);
-            solver.writeLp("test.lp");
+            solver.writeLp("test"+noSitios+".lp");
             
             // solve the problem
            solver.solve();
@@ -137,13 +159,29 @@ public class ModeloTSP {
             System.out.println("Value of objective function: " + objetivo);
 
             // delete the problem and free 
-            double[] var = solver.getPtrVariables();
-      
-             for (int i = 0; i < var.length; i++) {
-              //  System.out.println("Value of var[" + i + "] = " + var[i]);
+            double[] valoresOptimos = solver.getPtrVariables();
+            for(int i=0;i<valoresOptimos.length;i++){
+                double valor=valoresOptimos[i];
+                int tmp=i+1;
+                System.out.println(tmp+"-"+valor);
             }
-             solver.deleteLp();
-    
+             System.out.println("numero de sitios " + noSitios);
+             String resultado="";
+        for (int i = 0; i < noSitios; i++) {
+            resultado += "Sitio " + (i + 1) + " tiempo llegada: " + valoresOptimos[i] + "\n";
+            System.out.println("Sitio " + (i + 1) + " tiempo llegada: " + valoresOptimos[i] );
+        }
+        
+
+        int cantitadVariablesBinarias = sp.cantitadVariablesBinarias();
+        System.out.println("cantidad variables binarias" + 2*cantitadVariablesBinarias);
+
+        resultado += "________________________________________________\n";
+        //funcion objetivo, pasa o no pasa por el sitio ij 
+        acum=0;
+            
+         
+ 
             System.exit(1);
              
             int indiceTotal = 0;
