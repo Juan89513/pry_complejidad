@@ -15,7 +15,8 @@ public class Sitio {
     double tiempoEnSitio;
     double disponibilidad_inicial;
     double disponibilidad_final;
-    
+    double tiempo_llegada=0;
+
     public Sitio() {
     }
 
@@ -59,6 +60,14 @@ public class Sitio {
 
     public void setTiempoEnSitio(double tiempoEnSitio) {
         this.tiempoEnSitio = tiempoEnSitio;
+    }
+    
+    public double getTiempo_llegada() {
+        return tiempo_llegada;
+    }
+
+    public void setTiempo_llegada(double tiempo_llegada) {
+        this.tiempo_llegada = tiempo_llegada;
     }
     
     

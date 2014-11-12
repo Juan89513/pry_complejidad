@@ -88,6 +88,7 @@ public class FactoriaSitio {
             double tiempoFinal = Double.parseDouble(tmp[3]);
             
             Sitio sitio = new Sitio();
+            sitio.setNombre(""+i);
             sitio.setTiempoEnSitio(tiempoEnSitio);
             sitio.setDisponibilidad_inicial(tiempoInicial);
             sitio.setDisponibilidad_final(tiempoFinal);

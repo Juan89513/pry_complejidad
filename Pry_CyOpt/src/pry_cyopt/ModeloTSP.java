@@ -1,6 +1,8 @@
 package pry_cyopt;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import javax.swing.JOptionPane;
 import lpsolve.LpSolve;
 import lpsolve.LpSolveException;
@@ -181,28 +183,30 @@ public class ModeloTSP {
             
             //Traer funcion objetivo
             objetivo = solver.getObjective();
-            System.out.println("Value of objective function: " + objetivo);
+           // System.out.println("Value of objective function: " + objetivo);
 
             //Interpretación de resultados
             double[] valoresOptimos = solver.getPtrVariables();
             for(int i=0;i<valoresOptimos.length;i++){
                 double valor=valoresOptimos[i];
                 int tmp=i+1;
-                System.out.println(tmp+"-"+valor);
+              //  System.out.println(tmp+"-"+valor);
             }
-             System.out.println("numero de sitios " + noSitios);
-             String resultado="";
-        for (int i = 0; i < noSitios; i++) {
-            resultado += "Sitio " + (i + 1) + " tiempo llegada: " + valoresOptimos[i] + "\n";
-            System.out.println("Sitio " + (i + 1) + " tiempo llegada: " + valoresOptimos[i] );
-        }
+            // System.out.println("numero de sitios " + noSitios);
+            // String resultado="";
+        
         
 
         int cantitadVariablesBinarias = sp.cantitadVariablesBinarias();
-        System.out.println("cantidad variables binarias" + 2*cantitadVariablesBinarias);
+        //System.out.println("cantidad variables binarias" + 2*cantitadVariablesBinarias);
 
-        resultado += "________________________________________________\n";
+      //  resultado += "________________________________________________\n";
         //funcion objetivo, pasa o no pasa por el sitio ij 
+        for(int i=0;i<listaSitios.size();i++){
+            System.out.println(listaSitios.get(i).getNombre());
+            listaSitios.get(i).setTiempo_llegada(valoresOptimos[i]);
+        }
+        bubbleSort(listaSitios.size(),listaSitios);
         acum=0;
         System.exit(1);
         }
@@ -225,8 +229,39 @@ public class ModeloTSP {
         result+=rhs;
         return result;
     }
-    public double[] devolverRow(int nro_sitios,int sitioInicial,int sitioFinal,int totalVariablesBooleanas){
+    
+    public void ordenarSitios(ArrayList<Sitio> sitios){
         
+
+    }
+    
+    public ArrayList<Sitio> bubbleSort( int  num,ArrayList<Sitio> sitios )
+    {
+     int j;
+     boolean flag = true;   // set flag to true to begin first pass
+     double temp;   //holding variable
+
+    while (flag){
+        flag= false;    //set flag to false awaiting a possible swap
+        for( j=0;  j < sitios.size() -1;  j++ ){
+                if(sitios.get(j).getTiempo_llegada() > sitios.get(j+1).getTiempo_llegada())   // change to > for ascending sort
+                {
+                    temp =sitios.get(j).getTiempo_llegada();                //swap elements
+                    sitios.get(j).setTiempo_llegada(sitios.get(j+1).getTiempo_llegada()) ;
+                    sitios.get(j+1).setTiempo_llegada(temp) ;
+                    flag = true;              //shows a swap occurred  
+                } 
+        } 
+    }
+    String respuesta="";
+    for(Sitio sitio:sitios){
+        respuesta+=sitio.getNombre()+"->";
+       
+    }
+    System.out.println(respuesta);
+    return sitios;
+    } 
+    public double[] devolverRow(int nro_sitios,int sitioInicial,int sitioFinal,int totalVariablesBooleanas){
         double[]row=new double[totalVariablesBooleanas+nro_sitios+1];
         
         for(int i=0;i<nro_sitios;i++){
