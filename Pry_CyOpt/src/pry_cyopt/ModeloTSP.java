@@ -1,5 +1,4 @@
 package pry_cyopt;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -54,17 +53,14 @@ public class ModeloTSP {
             
             for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES DE ORDEN(1)
                 for (int j = 0; j < listaSitios.size(); j++) {
-                     if (i!=j&& j!=1) {
+                     if (i!=j&& j+1!=1) {
                         double[] row1 = new double[totalVariables];
                         row1[i+1] = 1;
                         row1[j+1] = -1;
-                       // row1[posVariableBinaria+noVariablesBinarias] = 1 * MGrande;
                         int tmp=i+1;
                         int tmp2=j+1;
                         System.out.println("i-j"+tmp+"-"+tmp2+"->"+posVariableBinaria);
                        row1[posVariableBinaria] = 1 * MGrande;
-                       
-                        
                         double terminoIndependiente1 = MGrande - listaSitios.get(i).getTiempoEnSitio() - distanciasEntreSitios[i][j];
                         auxResultados[i][j]=posVariableBinaria;
                         solver.addConstraint(row1, LpSolve.LE, terminoIndependiente1);
@@ -76,8 +72,7 @@ public class ModeloTSP {
                 }
             }
                         
-            // RESTRICCIONES DE LLEGADA EN TIEMPO ESTABLECIDO (2.1)Debe llegar antes del tiempo final   
-            for (int i = 0; i < listaSitios.size(); i++) { 
+            for (int i = 0; i < listaSitios.size(); i++) { // RESTRICCIONES DE LLEGADA EN TIEMPO ESTABLECIDO (2.1)Debe llegar antes del tiempo final   
                 double[] row = new double[totalVariables];
                 row[i+1] = 1;
                 double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_final();
@@ -89,14 +84,12 @@ public class ModeloTSP {
                 row[i + 1] = 1;
                 double terminoIndependiente = 0;
                 solver.addConstraint(row, LpSolve.GE, terminoIndependiente);
-
                 matriz.add(row);
                 terminosIndependientes.add(terminoIndependiente);
                 //indiceTotal++;
             }
             
-           // for (int i = noSitios + 1; i < (noSitios + 2*noVariablesBinarias+1); i++) { //SETEO LAS VARIABLES BINARIAS
-           for (int i = noSitios + 1; i < (noSitios + noVariablesBinarias+1); i++) { 
+            for (int i = noSitios + 1; i < (noSitios + noVariablesBinarias+1); i++) { //SETEO LAS VARIABLES BINARIAS
                 solver.setBinary(i, true);
             }
             
@@ -106,25 +99,16 @@ public class ModeloTSP {
                 boolean tiene_algo_para_agregar=false;
                 double row[] = new double[totalVariables];
                 for(int j=0;j<pasaPorUnSitio.length;j++){
-                      int tmp=i+1;
-                        int tmp2=j+1;
-                           
+                    int tmp=i+1;
+                    int tmp2=j+1;
                     acum++;
                     int res=noSitios+acum;
-                    //System.out.println("i-j"+tmp+"-"+tmp2+"->"+res);
                     if(distanciasEntreSitios[i][j]>0){
-                       
                          row[noSitios+acum] =1;
                          tiene_algo_para_agregar=true;
                     }
                 }
                 if(tiene_algo_para_agregar){
-                  /*  int tmp=i+1;
-                    int tmp2=i+1;
-                    for(double x:row)  {
-                         System.out.println(tmp+"-"+tmp2+"->"+x);
-                    }
-                     */
                     solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
                 }
              }
@@ -139,7 +123,6 @@ public class ModeloTSP {
                     
                     int tmp=i+1;
                         int tmp2=j+1;
-                    System.out.println("CIR"+tmp+"-"+tmp2+"->"+acum);
                     if(distanciasEntreSitios[i][j]>0){
                         if(noSitios+acum==4 ||noSitios+acum==8||noSitios+acum==12){
                             
@@ -155,10 +138,7 @@ public class ModeloTSP {
                         }else{
                             row[noSitios+acum+noSitios*2] =1;
                         }
-                        
-                            tiene_algo_para_agregar=true;
-                        
-                        
+                        tiene_algo_para_agregar=true;
                     }
                 }
                 if(tiene_algo_para_agregar){
@@ -167,7 +147,6 @@ public class ModeloTSP {
              }
             
             for (int i=0;i<noSitios;i++){ //RESTRICCIONES DE TIEMPO DE ESPERA (5)
-                //
                 double row[] = new double[totalVariables+1];
                 double terminoIndependiente=listaSitios.get(i).getDisponibilidad_inicial();
                 row[i+1]=1; 
@@ -186,7 +165,6 @@ public class ModeloTSP {
             }
             
             for (int i=0;i<noSitios;i++){ //RESTRICCIONES DE TIEMPO DE ESPERA (5)
-                //
                 rowObjetivo[i+noSitios+noVariablesBinarias+1] =1;
             }
             
@@ -196,28 +174,26 @@ public class ModeloTSP {
             
             //Traer funcion objetivo
             objetivo = solver.getObjective();
-           // System.out.println("Value of objective function: " + objetivo);
+            System.out.println("Value of objective function: " + objetivo);
 
             //Interpretación de resultados
             double[] valoresOptimos = solver.getPtrVariables();
             for(int i=0;i<valoresOptimos.length;i++){
                 double valor=valoresOptimos[i];
                 int tmp=i+1;
-              //  System.out.println(tmp+"-"+valor);
             }
-            // System.out.println("numero de sitios " + noSitios);
-            // String resultado="";
-        
+            
         
 
         int cantitadVariablesBinarias = sp.cantitadVariablesBinarias();
-        //System.out.println("cantidad variables binarias" + 2*cantitadVariablesBinarias);
-
-      //  resultado += "________________________________________________\n";
-        //funcion objetivo, pasa o no pasa por el sitio ij 
         for(int i=0;i<listaSitios.size();i++){
             System.out.println(listaSitios.get(i).getNombre());
             listaSitios.get(i).setTiempo_llegada(valoresOptimos[i]);
+        }
+        
+        for(int i=0;i<listaSitios.size();i++){
+            System.out.println(listaSitios.get(i).getNombre()+"->"+listaSitios.get(i).getTiempo_llegada());
+          
         }
         bubbleSort(listaSitios.size(),listaSitios);
         acum=0;
@@ -327,11 +303,6 @@ public class ModeloTSP {
     
     public static void main(String[] args) {
         ModeloTSP ms = new ModeloTSP();
-      /*  double[]resultRow=ms.devolverRow(0,1, 3, 9);
-        for(int i=0;i<resultRow.length;i++){
-            System.out.println(resultRow[i]);
-        }
-       System.exit(1);*/
         System.out.println(ms.resolverModelo("prueba2.txt"));
     }
     
