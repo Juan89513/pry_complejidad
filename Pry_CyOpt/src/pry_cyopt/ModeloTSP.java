@@ -54,19 +54,16 @@ public class ModeloTSP {
             
             for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES DE ORDEN(1)
                 for (int j = 0; j < listaSitios.size(); j++) {
-                     if (i!=j) {
+                     if (i!=j&& j!=1) {
                         double[] row1 = new double[totalVariables];
                         row1[i+1] = 1;
                         row1[j+1] = -1;
                        // row1[posVariableBinaria+noVariablesBinarias] = 1 * MGrande;
                         int tmp=i+1;
                         int tmp2=j+1;
-                     //   System.out.println("i-j"+tmp+"-"+tmp2+"->"+posVariableBinaria);
-                        if(posVariableBinaria!=10){
-                            row1[posVariableBinaria] = 1 * MGrande;
-                        }else{ // machetazoo!!!
-                            row1[8] = 1 * MGrande;
-                        }
+                        System.out.println("i-j"+tmp+"-"+tmp2+"->"+posVariableBinaria);
+                       row1[posVariableBinaria] = 1 * MGrande;
+                       
                         
                         double terminoIndependiente1 = MGrande - listaSitios.get(i).getTiempoEnSitio() - distanciasEntreSitios[i][j];
                         auxResultados[i][j]=posVariableBinaria;
@@ -85,14 +82,6 @@ public class ModeloTSP {
                 row[i+1] = 1;
                 double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_final();
                 solver.addConstraint(row, LpSolve.LE, terminoIndependiente1);
-            }
-            
-            // RESTRICCIONES DE LLEGADA EN TIEMPO ESTABLECIDO (2.2)Debe llegar antes del tiempo inicial, lo comenté porque daña el modelo
-            for (int i = 0; i < listaSitios.size(); i++) { 
-                double[] row1 = new double[totalVariables];
-                row1[i+1] = 1;
-                double terminoIndependiente1 = listaSitios.get(i).getDisponibilidad_inicial();
-                //solver.addConstraint(row1, LpSolve.GE, terminoIndependiente1);
             }
             
             for (int i = 0; i < listaSitios.size(); i++) { //RESTRICCIONES TIEMPO LLEGADA SITIOS MAYOR O IGUAL A CERO (3)
@@ -117,8 +106,14 @@ public class ModeloTSP {
                 boolean tiene_algo_para_agregar=false;
                 double row[] = new double[totalVariables];
                 for(int j=0;j<pasaPorUnSitio.length;j++){
+                      int tmp=i+1;
+                        int tmp2=j+1;
+                           
                     acum++;
+                    int res=noSitios+acum;
+                    //System.out.println("i-j"+tmp+"-"+tmp2+"->"+res);
                     if(distanciasEntreSitios[i][j]>0){
+                       
                          row[noSitios+acum] =1;
                          tiene_algo_para_agregar=true;
                     }
@@ -141,11 +136,29 @@ public class ModeloTSP {
                 boolean tiene_algo_para_agregar=false;
                 double row[] = new double[totalVariables];
                 for(int j=0;j<noSitios;j++){
+                    
+                    int tmp=i+1;
+                        int tmp2=j+1;
+                    System.out.println("CIR"+tmp+"-"+tmp2+"->"+acum);
                     if(distanciasEntreSitios[i][j]>0){
-                        row[noSitios+acum] =1;
-                        row[noSitios+acum+noSitios] =1;
-                        row[noSitios+acum+noSitios*2] =1;
-                        tiene_algo_para_agregar=true;
+                        if(noSitios+acum==4 ||noSitios+acum==8||noSitios+acum==12){
+                            
+                        }else{
+                            row[noSitios+acum] =1;
+                        }
+                        if(noSitios+acum+noSitios==4 ||noSitios+acum+noSitios==8||noSitios+acum+noSitios==12){
+                        }else{
+                            row[noSitios+acum+noSitios] =1;
+                        }
+                        if(noSitios+acum+noSitios*2==4||noSitios+acum+noSitios*2==8||noSitios+acum+noSitios*2==12){
+                                
+                        }else{
+                            row[noSitios+acum+noSitios*2] =1;
+                        }
+                        
+                            tiene_algo_para_agregar=true;
+                        
+                        
                     }
                 }
                 if(tiene_algo_para_agregar){
