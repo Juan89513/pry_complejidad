@@ -123,15 +123,15 @@ public class ModeloTSP {
                 int iteracion=1;
                 while(iteracion<=noSitios){
                     if(ignorarSitios[iteracion*iteracion]==1){
-                    System.out.println("ENTRO AC:"+iteracion*iteracion);
+          //         System.out.println("ENTRO AC:"+iteracion*iteracion);
                     }else{
                         ;
-                        System.out.println("NO ENTRO AC:"+iteracion*iteracion);
+            //            System.out.println("NO ENTRO AC:"+iteracion*iteracion);
                     //    System.out.println(acum);
                        // tiene_algo_para_agregar=true;
                     }
                     int sitioNuevo=(noSitios)*iteracion+acum;
-                    System.out.println("sitio nueov"+sitioNuevo);
+             //       System.out.println("sitio nueov"+sitioNuevo);
                     if(sitioNuevo<=noSitios+noVariablesBinarias)
                     {
                         row[sitioNuevo] =1;
@@ -147,7 +147,7 @@ public class ModeloTSP {
                 int x=0;
                  
                 for(double rowsito:row){
-                    System.out.println("acum"+acum+"-x"+x+"->"+rowsito);
+             //       System.out.println("acum"+acum+"-x"+x+"->"+rowsito);
                     x++;
                }
                
