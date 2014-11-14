@@ -28,6 +28,8 @@ public class ModeloTSP {
             double[][] distanciasEntreSitios = sp.getDistanciasSitios();
             //matriz auxiliar de booleanos diciendo si pasa o no por un sitio
             boolean [][] pasaPorUnSitio = new boolean[distanciasEntreSitios.length][distanciasEntreSitios.length];
+            double[] ignorarSitios=new double[noSitios*noSitios+1];
+            ignorarSitios=getSitiosAIgnorar(noSitios);
             
             //por cada nodo hay 4 variables (Tiempo de servicio, Tiempo de llegada,hora minima de llegada, hora maxima de llegada)
             //las variables binarias deben ser la cantidad de caminos que me pasen
@@ -59,7 +61,7 @@ public class ModeloTSP {
                         row1[j+1] = -1;
                         int tmp=i+1;
                         int tmp2=j+1;
-                        System.out.println("i-j"+tmp+"-"+tmp2+"->"+posVariableBinaria);
+                     //   System.out.println("i-j"+tmp+"-"+tmp2+"->"+posVariableBinaria);
                        row1[posVariableBinaria] = 1 * MGrande;
                         double terminoIndependiente1 = MGrande - listaSitios.get(i).getTiempoEnSitio() - distanciasEntreSitios[i][j];
                         auxResultados[i][j]=posVariableBinaria;
@@ -113,40 +115,47 @@ public class ModeloTSP {
                 }
              }
             
-            acum=0;
+            acum=1;
             for(int i=0;i<noSitios;i++){       //RESTRICCIONES DE CIRCUITO 4.2 PARA COLUMNAS; solo funciona para 3 sitios por ahora
                 double terminoIndependiente = 1;
-                 acum++;
                 boolean tiene_algo_para_agregar=false;
                 double row[] = new double[totalVariables];
-                for(int j=0;j<noSitios;j++){
-                    
-                    int tmp=i+1;
-                        int tmp2=j+1;
-                    if(distanciasEntreSitios[i][j]>0){
-                        if(noSitios+acum==4 ||noSitios+acum==8||noSitios+acum==12){
-                            
-                        }else{
-                            row[noSitios+acum] =1;
-                        }
-                        if(noSitios+acum+noSitios==4 ||noSitios+acum+noSitios==8||noSitios+acum+noSitios==12){
-                        }else{
-                            row[noSitios+acum+noSitios] =1;
-                        }
-                        if(noSitios+acum+noSitios*2==4||noSitios+acum+noSitios*2==8||noSitios+acum+noSitios*2==12){
-                                
-                        }else{
-                            row[noSitios+acum+noSitios*2] =1;
-                        }
-                        tiene_algo_para_agregar=true;
+                int iteracion=1;
+                while(iteracion<=noSitios){
+                    if(ignorarSitios[iteracion*iteracion]==1){
+                    System.out.println("ENTRO AC:"+iteracion*iteracion);
+                    }else{
+                        ;
+                        System.out.println("NO ENTRO AC:"+iteracion*iteracion);
+                    //    System.out.println(acum);
+                       // tiene_algo_para_agregar=true;
                     }
+                    int sitioNuevo=(noSitios)*iteracion+acum;
+                    System.out.println("sitio nueov"+sitioNuevo);
+                    if(sitioNuevo<=noSitios+noVariablesBinarias)
+                    {
+                        row[sitioNuevo] =1;
+                    }
+                    iteracion++;
+                    
                 }
-                if(tiene_algo_para_agregar){
-                    solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
-                }
+                acum++;
+                
+                
+                /*row[noSitios+acum+noSitios] =1;
+                row[noSitios+acum+noSitios*2] =1;*/
+                int x=0;
+                 
+                for(double rowsito:row){
+                    System.out.println("acum"+acum+"-x"+x+"->"+rowsito);
+                    x++;
+               }
+               
+               solver.addConstraint(row, LpSolve.EQ , terminoIndependiente);
+                    
              }
-            
-            for (int i=0;i<noSitios;i++){ //RESTRICCIONES DE TIEMPO DE ESPERA (5)
+             
+            for (int i=0;i<noSitios;i++){ //RESTRICCIONES DE TIEMPO DE ESPERA; (5)
                 double row[] = new double[totalVariables+1];
                 double terminoIndependiente=listaSitios.get(i).getDisponibilidad_inicial();
                 row[i+1]=1; 
@@ -157,7 +166,7 @@ public class ModeloTSP {
             
             acum=0;
             double rowObjetivo[]=new double[1+2*noSitios+noSitios*noSitios];
-            for(int i=0;i<pasaPorUnSitio.length;i++){  // FUNCION OBJETIVO (6) ; FALTA MINIMIZAR TIEMPOS DE ESPERA, ESTA COMO TSP ESTANDAR
+            for(int i=0;i<pasaPorUnSitio.length;i++){  // FUNCION OBJETIVO (6) ;
                 for(int j=0;j<pasaPorUnSitio.length;j++){
                     acum++;
                     rowObjetivo[noSitios+acum] =distanciasEntreSitios[i][j];
@@ -187,12 +196,12 @@ public class ModeloTSP {
 
         int cantitadVariablesBinarias = sp.cantitadVariablesBinarias();
         for(int i=0;i<listaSitios.size();i++){
-            System.out.println(listaSitios.get(i).getNombre());
+         //   System.out.println(listaSitios.get(i).getNombre());
             listaSitios.get(i).setTiempo_llegada(valoresOptimos[i]);
         }
         
         for(int i=0;i<listaSitios.size();i++){
-            System.out.println(listaSitios.get(i).getNombre()+"->"+listaSitios.get(i).getTiempo_llegada());
+           // System.out.println(listaSitios.get(i).getNombre()+"->"+listaSitios.get(i).getTiempo_llegada());
           
         }
         bubbleSort(listaSitios.size(),listaSitios);
@@ -204,6 +213,22 @@ public class ModeloTSP {
         return "";
     }
     
+    double [] getSitiosAIgnorar(int noSitios){
+        int acum=1;
+        double [] respuesta=new double[(noSitios*noSitios)+1];
+        for (int i=0;i<noSitios;i++){
+            for(int j=0;j<noSitios;j++){
+                if(i==j){
+                    respuesta[acum]=1;
+                }
+                acum++;
+            }
+        }
+       /* for(double res:respuesta){
+            System.out.println(res);
+        }*/
+        return respuesta;
+    }
     String completarConCeros(int numeroVariablesPuestas,int numeroTotalVariables,String rhs){
         String result="";
         for(int i=0;i<numeroTotalVariables;i++){
@@ -303,7 +328,7 @@ public class ModeloTSP {
     
     public static void main(String[] args) {
         ModeloTSP ms = new ModeloTSP();
-        System.out.println(ms.resolverModelo("prueba2.txt"));
+        System.out.println(ms.resolverModelo("prueba1.txt"));
     }
     
 }
