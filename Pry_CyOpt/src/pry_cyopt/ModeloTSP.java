@@ -174,7 +174,7 @@ public class ModeloTSP {
             }
             
             for (int i=0;i<noSitios;i++){ //RESTRICCIONES DE TIEMPO DE ESPERA (5)
-                rowObjetivo[i+noSitios+noVariablesBinarias+1] =1;
+                rowObjetivo[i+1] =1;
             }
             
             solver.setObjFn(rowObjetivo);
@@ -328,7 +328,7 @@ public class ModeloTSP {
     
     public static void main(String[] args) {
         ModeloTSP ms = new ModeloTSP();
-        System.out.println(ms.resolverModelo("prueba1.txt"));
+        System.out.println(ms.resolverModelo("prueba2.txt"));
     }
     
 }

@@ -1,5 +1,5 @@
 /* Objective function */
-min: +5 C5 +7 C6 +5 C7 +13 C9 +7 C10 +13 C11 +C13 +C14 +C15;
+min: +C1 +C2 +C3 +5 C5 +7 C6 +5 C7 +13 C9 +7 C10 +13 C11;
 
 /* Constraints */
 +C1 -C2 +188.7 C5 <= 181.2;
